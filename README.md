@@ -1,118 +1,122 @@
-# Smart Attendance System
+# Smart Attendance System (AI + ESP32)
 
-AI-powered smart attendance system using:
-
-- Python
-- OpenCV
-- ESP32-CAM
-- Face Recognition
-- Attendance Logging
+An AI-powered smart attendance system using facial recognition, FastAPI, SQLite, and ESP32-CAM.
 
 ## Features
 
-- Real-time face detection
-- Face registration system
-- Multi-user recognition
-- Attendance logging
+- Face registration
+- Face recognition
+- Automatic attendance marking
 - Duplicate attendance prevention
-- Local AI recognition engine
+- User management
+- AI model training
+- Attendance history tracking
+- REST API backend
+- ESP32-CAM integration (coming soon)
 
 ---
 
-# Project Structure
+## Tech Stack
 
-AI/
-│
-├── datasets/
-├── attendance/
-├── recognition/
-├── registration/
-├── models/
-└── utils/
-
----
-
-# Technologies Used
-
+### Backend
 - Python 3.11
+- FastAPI
+- SQLAlchemy
+- SQLite
+- Uvicorn
+
+### AI / Computer Vision
 - OpenCV
-- LBPH Face Recognizer
+- LBPH Face Recognition
 - NumPy
-- ESP32-CAM (upcoming)
-- FastAPI (upcoming)
+
+### Hardware
+- ESP32-CAM (planned)
 
 ---
 
-# Current Progress
+## Project Structure
 
-✅ Face Detection  
-✅ User Registration  
-✅ Dataset Collection  
-✅ AI Model Training  
-✅ Real-Time Face Recognition  
-✅ Attendance Logging  
-
----
-
-# Upcoming Features
-
-- FastAPI Backend
-- PostgreSQL Database
-- Dashboard
-- ESP32-CAM Integration
-- Real-time Attendance Analytics
-
----
-
-# Setup
-
-## Create Virtual Environment
-
-```bash
+```txt
+backend-api/
+│
+├── AI/
+│   ├── datasets/
+│   ├── models/
+│   ├── recognition/
+│   └── attendance/
+│
+├── app/
+│   ├── models/
+│   ├── routes/
+│   ├── schemas/
+│   ├── services/
+│   ├── database.py
+│   └── main.py
+│
+├── requirements.txt
+├── .gitignore
+└── README.md
+Installation
+Clone Repository
+git clone <your-repo-url>
+cd backend-api
+Create Virtual Environment
 python3.11 -m venv venv
-```
 
-## Activate Virtual Environment
+Activate:
 
-```bash
+Linux/macOS:
+
 source venv/bin/activate
-```
 
-## Install Dependencies
+Windows:
 
-```bash
-pip install opencv-python opencv-contrib-python numpy
-```
+venv\Scripts\activate
+Install Dependencies
+pip install -r requirements.txt
+Run Server
+uvicorn app.main:app --reload
 
----
+Server:
 
-# Run Face Registration
+http://127.0.0.1:8000
 
-```bash
-cd AI/registration
-python register_user.py
-```
+Swagger Docs:
 
----
-
-# Train Recognition Model
-
-```bash
-cd AI/recognition
-python train_model.py
-```
-
----
-
-# Run Recognition System
-
-```bash
-cd AI/recognition
-python recognize_face.py
-```
-
----
-
-# Author
+http://127.0.0.1:8000/docs
+API Endpoints
+User APIs
+Method	Endpoint	Description
+POST	/register-user	Register user
+GET	/users	Get users
+DELETE	/users/{id}	Delete user
+Recognition APIs
+Method	Endpoint	Description
+POST	/recognize	Recognize face
+POST	/train-model	Retrain AI model
+Attendance APIs
+Method	Endpoint	Description
+GET	/attendance	Attendance history
+System Workflow
+Register User
+      ↓
+Upload Face Image
+      ↓
+Train AI Model
+      ↓
+Recognition
+      ↓
+Attendance Marking
+      ↓
+Dashboard View
+Future Improvements
+Admin dashboard UI
+Analytics dashboard
+ESP32-CAM integration
+Real-time notifications
+Cloud deployment
+Author
 
 Usman Umar Garba
+Software Engineering | Mobile Engineer | Bitcoin & Lightning Enthusiast

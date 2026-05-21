@@ -1,6 +1,31 @@
+# Virtual environment
 venv/
+
+# Python cache
 __pycache__/
 *.pyc
+
+# Database
+attendance.db
+
+# Temporary uploads
+temp_uploads/
+
+# AI datasets
+AI/datasets/
+
+# AI trained models
+AI/models/*.yml
+AI/models/*.txt
+
+# CSV attendance logs
+AI/attendance/*.csv
+
+# VS Code
+.vscode/
+
+# Environment variables
 .env
+
+# OS files
 .DS_Store
-attendance_log.csv

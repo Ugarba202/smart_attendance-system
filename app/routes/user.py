@@ -1,129 +1,101 @@
-import shutil
-import os
-
-import shutil
-import os
-
-from app.services.train_service import (
-    train_model
-)
-
+from fastapi import APIRouter, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
-from fastapi import Depends
-
-from app.database import get_db
-from app.models.user import User
-
-from fastapi import (
-    
-    
-    APIRouter,
-    Depends,
-    UploadFile,
-    File,
-    Form
-)
-
-from sqlalchemy.orm import Session
-
-from app.database import (
-    get_db
-)
-
-from app.models.user import User
-
-from app.services.train_service import (
-    train_model
-)
-
-import os
 import shutil
+import os
+
+from app.database import SessionLocal
+from app.models.user import User
 
 router = APIRouter()
 
-BASE_DIR = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        "AI"
-    )
-)
+
+# Database dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-@router.post("/register-user")
-def register_user(
+@router.post("/users")
+async def create_user(
     full_name: str = Form(...),
+    registration_number: str = Form(...),
     department: str = Form(...),
     image: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
+    # Create folder for user images
+    user_folder = f"AI/datasets/{registration_number}"
+    os.makedirs(user_folder, exist_ok=True)
 
-    # Save image folder
-    dataset_folder = os.path.join(
-        BASE_DIR,
-        "datasets",
-        full_name.lower()
-    )
-
-    os.makedirs(
-        dataset_folder,
-        exist_ok=True
-    )
-
-    image_path = os.path.join(
-        dataset_folder,
+    file_path = os.path.join(
+        user_folder,
         image.filename
     )
 
-    with open(
-        image_path,
-        "wb"
-    ) as buffer:
-
+    with open(file_path, "wb") as buffer:
         shutil.copyfileobj(
             image.file,
             buffer
         )
 
-    # Save DB user
+    # Save to database
     new_user = User(
         full_name=full_name,
+        registration_number=registration_number,
         department=department,
-        image_path=image_path
+        image_path=file_path,
+        status="Active"
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    # Auto train model
-    train_model()
-
     return {
-        "message":
-        "User registered successfully",
-
+        "message": "User registered successfully",
         "user": {
             "id": new_user.id,
-            "full_name":
-            new_user.full_name
+            "full_name": new_user.full_name,
+            "registration_number": new_user.registration_number,
+            "department": new_user.department,
+            "status": new_user.status
         }
     }
-@router.get("/users")
-def get_users(db: Session = Depends(get_db)):
 
+
+@router.get("/users")
+def get_users(
+    db: Session = Depends(get_db)
+):
     users = db.query(User).all()
 
-    return users
+    return [
+        {
+            "id": user.id,
+            "full_name": user.full_name,
+            "registration_number":
+                user.registration_number,
+            "department": user.department,
+            "status": user.status
+        }
+        for user in users
+    ]
 
-@router.delete("/users/{user_id}")
+import shutil
+import os
+
+
+@router.delete(
+    "/users/{user_id}"
+)
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db)
 ):
 
-    # Find user
     user = db.query(User).filter(
         User.id == user_id
     ).first()
@@ -132,97 +104,81 @@ def delete_user(
 
         return {
             "status": "error",
-            "message": "User not found"
+            "message":
+            "User not found"
         }
 
-    # Dataset folder path
-    base_dir = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "AI"
-        )
-    )
-
     dataset_path = os.path.join(
-        base_dir,
-        "datasets",
-        user.full_name
-    )
-
-    # Delete dataset folder
-    if os.path.exists(dataset_path):
-
-        shutil.rmtree(dataset_path)
-
-    # Delete DB record
-    db.delete(user)
-    db.commit()
-
-    # Retrain model
-    train_model()
-
-    return {
-        "status": "success",
-        "message": (
-            "User deleted "
-            "successfully"
-        )
-    }
-
-@router.delete("/users/{user_id}")
-def delete_user(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-
-    # Find user
-    user = db.query(User).filter(
-        User.id == user_id
-    ).first()
-
-    if not user:
-
-        return {
-            "status": "error",
-            "message": "User not found"
-        }
-
-    # Dataset folder path
-    base_dir = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "..",
-            "AI"
-        )
-    )
-
-    dataset_path = os.path.join(
-        base_dir,
+        "AI",
         "datasets",
         user.full_name.lower()
     )
 
-    # Delete dataset folder
-    if os.path.exists(dataset_path):
+    if os.path.exists(
+        dataset_path
+    ):
+        shutil.rmtree(
+            dataset_path
+        )
 
-        shutil.rmtree(dataset_path)
-
-    # Delete user from database
     db.delete(user)
     db.commit()
-
-    # Retrain model
-    from app.services.train_service import (
-        train_model
-    )
-
-    train_model()
 
     return {
         "status": "success",
         "message":
         "User deleted successfully"
+    }
+
+from fastapi import HTTPException
+
+
+@router.put(
+    "/users/{user_id}"
+)
+def update_user(
+    user_id: int,
+    payload: dict,
+    db: Session = Depends(get_db)
+):
+
+    user = db.query(User).filter(
+        User.id == user_id
+    ).first()
+
+    if not user:
+
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    user.full_name = payload.get(
+        "full_name",
+        user.full_name
+    )
+
+    user.registration_number = (
+        payload.get(
+            "registration_number",
+            user.registration_number
+        )
+    )
+
+    user.department = payload.get(
+        "department",
+        user.department
+    )
+
+    user.status = payload.get(
+        "status",
+        user.status
+    )
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message":
+        "User updated successfully"
     }

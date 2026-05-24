@@ -1,14 +1,8 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String
-)
-
+from sqlalchemy import Column, Integer, String
 from app.database import Base
 
 
 class User(Base):
-
     __tablename__ = "users"
 
     id = Column(
@@ -22,12 +16,23 @@ class User(Base):
         nullable=False
     )
 
+    registration_number = Column(
+        String,
+        unique=True,
+        nullable=False
+    )
+
     department = Column(
         String,
-        nullable=True
+        nullable=False
     )
 
     image_path = Column(
         String,
-        nullable=True
+        nullable=False
+    )
+
+    status = Column(
+        String,
+        default="Active"
     )

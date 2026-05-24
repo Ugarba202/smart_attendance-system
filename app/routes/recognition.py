@@ -67,18 +67,41 @@ def recognize(
     if result["status"] != "recognized":
         return result
 
-    # Get user from database
-    user = db.query(User).filter(
-        User.full_name ==
+    # Get recognized name
+    recognized_name = (
         result["full_name"]
-    ).first()
+        .strip()
+        .lower()
+    )
 
+    # Search user loosely
+    users = db.query(User).all()
+
+    user = None
+
+    for db_user in users:
+
+        db_name = (
+            db_user.full_name
+            .strip()
+            .lower()
+        )
+
+        if (
+            recognized_name in db_name
+            or
+            db_name in recognized_name
+        ):
+            user = db_user
+            break
+
+    # If user not found
     if not user:
 
         return {
             "status": "error",
             "message":
-            "User not found"
+            f"User not found: {recognized_name}"
         }
 
     # Mark attendance
@@ -107,7 +130,9 @@ def recognize(
             "full_name":
             user.full_name,
             "department":
-            user.department
+            user.department,
+            "registration_number":
+            user.registration_number
         },
 
         "confidence":

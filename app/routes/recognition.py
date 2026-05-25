@@ -34,18 +34,21 @@ def recognize(
     db: Session = Depends(get_db)
 ):
 
-    # Temp upload folder
-    temp_folder = "temp_uploads"
+    # temp folder
+    temp_folder = (
+        "temp_uploads"
+    )
 
     os.makedirs(
         temp_folder,
         exist_ok=True
     )
 
-    # Save uploaded image
-    image_path = os.path.join(
-        temp_folder,
-        image.filename
+    image_path = (
+        os.path.join(
+            temp_folder,
+            image.filename
+        )
     )
 
     with open(
@@ -58,53 +61,49 @@ def recognize(
             buffer
         )
 
-    # Run AI recognition
+    # AI recognition
     result = recognize_face(
         image_path
     )
 
-    # If not recognized
-    if result["status"] != "recognized":
+    if (
+        result["status"]
+        != "recognized"
+    ):
+
         return result
 
-    # Get recognized name
-    recognized_name = (
+    # recognized label
+    recognized_label = (
         result["full_name"]
         .strip()
         .lower()
     )
 
-    # Search user loosely
-    users = db.query(User).all()
-
-    user = None
-
-    for db_user in users:
-
-        db_name = (
-            db_user.full_name
-            .strip()
-            .lower()
+    # IMPORTANT FIX:
+    # search registration number
+    user = (
+        db.query(User)
+        .filter(
+            User.registration_number
+            .ilike(
+                recognized_label
+            )
         )
+        .first()
+    )
 
-        if (
-            recognized_name in db_name
-            or
-            db_name in recognized_name
-        ):
-            user = db_user
-            break
-
-    # If user not found
     if not user:
 
         return {
-            "status": "error",
+            "status":
+            "error",
+
             "message":
-            f"User not found: {recognized_name}"
+            f"User not found: {recognized_label}"
         }
 
-    # Mark attendance
+    # mark attendance
     attendance_result = (
         mark_attendance(
             db,
@@ -113,7 +112,9 @@ def recognize(
     )
 
     return {
-        "status": "recognized",
+
+        "status":
+        "recognized",
 
         "attendance_marked":
         attendance_result[
@@ -126,11 +127,16 @@ def recognize(
         ],
 
         "user": {
-            "id": user.id,
+
+            "id":
+            user.id,
+
             "full_name":
             user.full_name,
+
             "department":
             user.department,
+
             "registration_number":
             user.registration_number
         },
@@ -140,13 +146,17 @@ def recognize(
     }
 
 
-@router.post("/train-model")
+@router.post(
+    "/train-model"
+)
 def retrain_model():
 
     train_model()
 
     return {
-        "status": "success",
+        "status":
+        "success",
+
         "message":
         "Model trained successfully"
     }

@@ -25,11 +25,16 @@ Base.metadata.create_all(
 )
 db = SessionLocal()
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 existing_admin = (
     db.query(Admin)
     .filter(
         Admin.username ==
-        "admin"
+        os.getenv("ADMIN_USERNAME", "admin")
     )
     .first()
 )
@@ -37,10 +42,10 @@ existing_admin = (
 if not existing_admin:
 
     admin = Admin(
-        username="admin",
-        password="admin123",
-        role="super_admin",
-        full_name="System Admin"
+        username=os.getenv("ADMIN_USERNAME", "admin"),
+        password=os.getenv("ADMIN_PASSWORD", "admin123"),
+        role=os.getenv("ADMIN_ROLE", "super_admin"),
+        full_name=os.getenv("ADMIN_FULL_NAME", "System Admin")
     )
 
     db.add(admin)

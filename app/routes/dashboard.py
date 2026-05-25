@@ -97,3 +97,87 @@ def get_recent_attendance(
         })
 
     return result
+
+@router.get(
+    "/dashboard/analytics"
+)
+def get_analytics(
+    db: Session = Depends(get_db)
+):
+
+    total_users = (
+        db.query(User)
+        .count()
+    )
+
+    today = date.today()
+
+    present_today = (
+        db.query(Attendance)
+        .filter(
+            Attendance.date ==
+            today
+        )
+        .count()
+    )
+
+    absent_today = (
+        total_users -
+        present_today
+    )
+
+    attendance = (
+        db.query(Attendance)
+        .all()
+    )
+
+    weekly_data = {}
+
+    for item in attendance:
+
+        day = str(
+            item.date
+        )
+
+        weekly_data[day] = (
+            weekly_data.get(
+                day,
+                0
+            ) + 1
+        )
+
+    weekly_chart = []
+
+    for key, value in (
+        weekly_data.items()
+    ):
+
+        weekly_chart.append({
+            "date": key,
+            "attendance":
+            value
+        })
+
+    return {
+
+        "pie_chart": [
+            {
+                "name":
+                "Present",
+
+                "value":
+                present_today
+            },
+
+            {
+                "name":
+                "Absent",
+
+                "value":
+                absent_today
+            }
+        ],
+
+        "weekly_chart":
+        weekly_chart
+    }

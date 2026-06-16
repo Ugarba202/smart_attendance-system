@@ -18,7 +18,8 @@ from app.routes import (
     user,
     recognition,
     export,
-    auth
+    auth,
+    esp_recognition
 )
 Base.metadata.create_all(
     bind=engine
@@ -62,6 +63,14 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+@app.get("/esp-test")
+def esp_test():
+    return {
+        "status": "success",
+        "message": "ESP Connected"
+    }
+
+
 app.include_router(
     user.router
 )
@@ -84,4 +93,8 @@ app.include_router(
 
 app.include_router(
     auth.router
+)
+
+app.include_router(
+    esp_recognition.router
 )
